@@ -1,7 +1,0 @@
-[flask]
-port = 5050
-
-[virtuoso]
-dsn = virtuoso
-username = dba
-password = dba

@@ -1,0 +1,3 @@
+[virtuoso]
+Driver  = /usr/local/virtuoso-opensource/lib/virtodbc_r.so
+Address = ${VIRTUOSO_HOST}:1111

@@ -1,5 +1,5 @@
+import os
 import pyodbc
-import configparser
 
 from flask import Flask
 from flask import jsonify
@@ -13,18 +13,10 @@ class IsqlApi():
 
     def __init__(self):
         """init"""
-        conf_path = "config.ini"
-        conf = configparser.ConfigParser()
-        try:
-            conf.read(conf_path)
-        except Exception as e:
-            print("Failed to read {}".format(conf_path))
-            raise e
-
-        self.port = int(conf["flask"]["port"])
-        self.virtuoso_dsn = str(conf["virtuoso"]["dsn"])
-        self.virtuoso_username = str(conf["virtuoso"]["username"])
-        self.virtuoso_password = str(conf["virtuoso"]["password"])
+        self.port = int(os.getenv('ISQL_API_SERVER_PORT', 5050))
+        self.virtuoso_dsn = str(os.getenv('ISQL_API_VIRTUOSO_DSN', "virtuoso"))
+        self.virtuoso_username = str(os.getenv('ISQL_API_VIRTUOSO_USERNAME', "dba"))
+        self.virtuoso_password = str(os.getenv('ISQL_API_VIRTUOSO_PASSWORD', "dba"))
 
         connection = pyodbc.connect("DSN={};UID={};PWD={}".format(self.virtuoso_dsn, self.virtuoso_username, self.virtuoso_password))
         self.cursor = connection.cursor()
