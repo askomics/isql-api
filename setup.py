@@ -5,7 +5,7 @@ with open('requirements.txt') as f:
 
 setup(
     name='isql-api',
-    version='2.0.0',
+    version='2.1.0',
     description='''
         Rest API to use virtuoso isql commands through HTTP.
     ''',

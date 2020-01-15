@@ -1,5 +1,7 @@
 import os
 import pyodbc
+import traceback
+import sys
 
 from flask import Flask
 from flask import jsonify
@@ -27,30 +29,43 @@ class IsqlApi():
 @app.route("/", methods=["POST"])
 def execute_isql():
     """execute isql command"""
-    command = request.get_json()
+    data = request.get_json()
+    command = data["command"]
+    disable_log = data["disable_log"]
+    sparql_select = data["sparql_select"]
 
     try:
         api = IsqlApi()
 
-        rows = api.cursor.execute(command).fetchall()
-        var = [s[0] for s in rows[0].cursor_description]
-
-        # Parse results
         formatted_rows = []
-        for row in rows:
-            d = {}
-            for i, v in enumerate(var):
-                if not row[i]:
-                    continue
-                d[v] = row[i]
-            formatted_rows.append(d)
+        sparql_variables = []
 
-        results = {"isql": True, "command": command, "vars": var, "rows": formatted_rows, "status": "200", "message": None}
+        if disable_log:
+            api.cursor.execute("log_enable(3, 1)")
+
+        if sparql_select:
+            rows = api.cursor.execute(command).fetchall()
+            if rows:
+                # get SPARQL variables
+                sparql_variables = [s[0] for s in rows[0].cursor_description]
+                # Parse results
+                for row in rows:
+                    d = {}
+                    for i, var in enumerate(sparql_variables):
+                        if not row[i]:
+                            continue
+                        d[var] = row[i]
+                    formatted_rows.append(d)
+        else:
+            api.cursor.execute(command)
+
+        results = {"isql": True, "command": command, "vars": sparql_variables, "rows": formatted_rows, "status": 200, "message": None}
 
         return jsonify(results)
     except Exception as e:
-        results = {"isql": True, "command": command, "vars": [], "rows": [], "status": "500", "message": str(e)}
-        return jsonify(results, 500)
+        traceback.print_exc(file=sys.stdout)
+        results = {"isql": True, "command": command, "vars": [], "rows": [], "status": 500, "message": str(e)}
+        return jsonify(results)
 
 if __name__ == '__main__':
     api = IsqlApi()
