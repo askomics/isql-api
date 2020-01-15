@@ -19,25 +19,38 @@ class IsqlApi():
         self.virtuoso_password = str(os.getenv('ISQL_API_VIRTUOSO_PASSWORD', "dba"))
 
         connection = pyodbc.connect("DSN={};UID={};PWD={}".format(self.virtuoso_dsn, self.virtuoso_username, self.virtuoso_password))
+        connection.setencoding(encoding='utf-8')
+        connection.setdecoding(pyodbc.SQL_CHAR, encoding='utf-8')
         self.cursor = connection.cursor()
 
 
 @app.route("/", methods=["POST"])
 def execute_isql():
     """execute isql command"""
-    commands = request.get_json()
-    results = []
-    ongoing_command = ""
+    command = request.get_json()
+
     try:
         api = IsqlApi()
-        for command in commands:
-            ongoing_command = command
-            api.cursor.execute(command)
-            results.append({"command": command, "status": "200", "message": None})
+
+        rows = api.cursor.execute(command).fetchall()
+        var = [s[0] for s in rows[0].cursor_description]
+
+        # Parse results
+        formatted_rows = []
+        for row in rows:
+            d = {}
+            for i, v in enumerate(var):
+                if not row[i]:
+                    continue
+                d[v] = row[i]
+            formatted_rows.append(d)
+
+        results = {"isql": True, "command": command, "vars": var, "rows": formatted_rows, "status": "200", "message": None}
+
+        return jsonify(results)
     except Exception as e:
-        results.append({"command": ongoing_command, "status": "500", "message": str(e)})
+        results = {"isql": True, "command": command, "vars": [], "rows": [], "status": "500", "message": str(e)}
         return jsonify(results, 500)
-    return jsonify(results)
 
 if __name__ == '__main__':
     api = IsqlApi()
