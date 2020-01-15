@@ -14,6 +14,8 @@ FROM askomics/virtuoso:7.2.5.1 AS virtuoso_builder
 # Final image
 FROM alpine:3.8
 
+ENV WORKER_TIMEOUT="43200"
+
 ENV ISQL_API_SERVER_PORT="5050"
 
 ENV ISQL_API_VIRTUOSO_DSN="virtuoso"
