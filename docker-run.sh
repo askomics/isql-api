@@ -9,4 +9,4 @@ envsubst < /isqlapi/odbc.ini.example > /etc/odbc.ini
 source venv/bin/activate
 
 # Serve
-gunicorn --timeout ${WORKER_TIMEOUT} --bind 0.0.0.0:${ISQL_API_SERVER_PORT} wsgi:app
+gunicorn --timeout ${WORKER_TIMEOUT} --workers ${WORKER_NUMBER} --bind 0.0.0.0:${ISQL_API_SERVER_PORT} wsgi:app
