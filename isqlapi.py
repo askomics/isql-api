@@ -30,7 +30,7 @@ class IsqlApi():
 def execute_isql():
     """execute isql command"""
     data = request.get_json()
-    command = data["command"]
+    command = "{} &".format(data["command"])
     disable_log = data["disable_log"]
     sparql_select = data["sparql_select"]
 
